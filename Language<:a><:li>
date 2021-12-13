@@ -1,0 +1,7 @@
+Language</a></li>
+                        <li><a [routerLink]="['setting/profile-question-and-answer']" key="t-user-list">Profile Que & Suggestions</a></li>
+                        <li><a [routerLink]="['setting/basic-topic']" key="t-profile">Topic wise Que & Ans</a></li>
+                        <li><a [routerLink]="['setting/story-emoji']" key="t-profile">Story Emoji</a></li>
+                        <li><a [routerLink]="['setting/credit-stickers']" key="t-profile">Credit Stickers</a></li>
+                        <li><a [routerLink]="['setting/diamonds-credits-reward']" key="t-profile">Diamonds Credits Reward</a></li>
+                        <li><a [routerLink]="['setting/premium-plans']" key="t-profile">Premium Plans</a></li>
