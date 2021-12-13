@@ -29,23 +29,33 @@ class SellerOrderController extends Controller
                 {        
                     $userDetails = User::select('id')->where('use_token',$token)->where('use_status',0)->first();
 
-                    $orderDetails = ProductOrder::leftjoin('users','tbl_orders.ord_customer_id','=','users.id')->leftjoin('tbl_products','tbl_orders.ord_product_id','=','tbl_products.pod_id')->where('ord_seller_id',$userDetails->id)->get();
+                    $orderDetails = ProductOrder::leftjoin('users','tbl_orders.ord_customer_id','=','users.id')->leftjoin('tbl_orders_summary','tbl_orders.ord_order_id','=','tbl_orders_summary.ors_order_id')->where('ord_seller_id',$userDetails->id)->get();
 
                     if(!$orderDetails->isEmpty())
                     { 
                         $orderRecords = array();
                         foreach ($orderDetails as $key => $value)
                         { 
-                            $productUrl = url("public/assets/img/products/".$value->pod_picture);
+                            $productsDetails = DB::table('tbl_products')->select('pod_picture','pod_pro_name','pod_brand_name')->where('pod_id',$value->ors_product_id)->first();
+                            if($productsDetails){
+                                $productUrl = url("public/assets/img/products/".$productsDetails->pod_picture);
+                                $productName = $productsDetails->pod_pro_name;
+                                $brandName = $productsDetails->pod_brand_name;
+                            }else{
+                                $productUrl = url("public/assets/img/products/plain-img.jpg");
+                                $productName = "";
+                                $brandName = "";
+                            }
+                            
                             $orderRecords[] = array(
                                 "order_id" => ''.$value->ord_id.'',
                                 "order_code" => $value->ord_order_id,
-                                "product_id" => ''.$value->ord_product_id.'',
-                                "product_name" => $value->pod_pro_name,
-                                "brand_name" => $value->pod_brand_name,
-                                "price" => ''.$value->ord_unit_per_price.'',
-                                "quantity" => ''.$value->ord_qty_ordered.'',
-                                "total" => $value->ord_grand_total,
+                                "product_id" => ''.$value->ors_product_id.'',
+                                "product_name" =>  $productName,
+                                "brand_name" => $brandName,
+                                "price" => ''.$value->ors_unit_per_price.'',
+                                "quantity" => ''.$value->ors_qty_ordered.'',
+                                "total" => ''.$value->ors_grand_total.'',
                                 "customer_name" => $value->ord_full_name,
                                 "shipping_address" => $value->ord_shipped_to,
                                 "contact_number" => ''.$value->ord_phone_number.'',

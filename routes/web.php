@@ -16,17 +16,17 @@ use App\Model\SystemSetting;
 use App\Model\Products;
 
 View::composer(['layouts.header','layouts.sidebar'], function ($data) {
-            $data['systemInformation'] = SystemSetting::where('sys_id',1)->first();
-            $data['clothes'] = Products::where('pod_main_cat_id',10)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['watches'] = Products::where('pod_main_cat_id',7)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['shoes'] = Products::where('pod_main_cat_id',9)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['beltes'] = Products::where('pod_main_cat_id',8)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['walletes'] = Products::where('pod_main_cat_id',11)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['mobilesCovers'] = Products::where('pod_main_cat_id',12)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['gadget'] = Products::where('pod_main_cat_id',15)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['childrenToys'] = Products::where('pod_main_cat_id',13)->where('pod_status',0)->count('pod_main_cat_id');
-            $data['girlBeauty'] = Products::where('pod_main_cat_id',14)->where('pod_status',0)->count('pod_main_cat_id');
-        });
+      $data['systemInformation'] = SystemSetting::where('sys_id',1)->first();
+      $data['clothes'] = Products::where('pod_main_cat_id',10)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['watches'] = Products::where('pod_main_cat_id',7)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['shoes'] = Products::where('pod_main_cat_id',9)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['beltes'] = Products::where('pod_main_cat_id',8)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['walletes'] = Products::where('pod_main_cat_id',11)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['mobilesCovers'] = Products::where('pod_main_cat_id',12)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['gadget'] = Products::where('pod_main_cat_id',15)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['childrenToys'] = Products::where('pod_main_cat_id',13)->where('pod_status',0)->count('pod_main_cat_id');
+      $data['girlBeauty'] = Products::where('pod_main_cat_id',14)->where('pod_status',0)->count('pod_main_cat_id');
+  });
 Route::post('user-login','Auth\LoginController@login');
 Auth::routes();
 

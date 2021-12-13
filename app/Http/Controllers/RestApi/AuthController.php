@@ -197,7 +197,7 @@ class AuthController extends Controller
         {
             if(is_numeric($request->mobile_number))
             {
-                if(User::where('use_phone_no',$request->mobile_number)->exists())
+                if(User::where('use_phone_no',$request->mobile_number)->where('use_role',2)->exists())
                 {
                     $msg = "Mobile number already exists!";
                     return json_encode(['status' => true, 'error' => '200', 'message' => $msg],JSON_UNESCAPED_SLASHES);
