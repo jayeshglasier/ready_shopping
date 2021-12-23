@@ -205,10 +205,10 @@
                             @endif
                           </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-3" style="display: none;">
                           <div class="form-group">
                             <label>Size</label>
-                            <input type="text" class="form-control" name="pod_size" id="pod_size" placeholder="Size" value="{{ $editData->pod_size }}" maxlength="20">
+                            <input type="text" class="form-control" name="pod_size" id="pod_size" placeholder="Size" value="0" maxlength="20" >
                                @if($errors->has('pod_size')) <span class="help-block">
                                   <strong>{{ $errors->first('pod_size') }}</strong>
                                   </span> 

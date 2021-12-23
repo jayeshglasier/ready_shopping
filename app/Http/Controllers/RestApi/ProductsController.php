@@ -11,6 +11,7 @@ use App\Model\Products;
 use App\Model\ProductImages;
 use App\Model\SellersProducts;
 use App\Model\ShippingAddress;
+use App\Model\SystemSetting;
 use App\Model\Brands;
 use App\Model\WishProduct;
 use App\Model\Cart;
@@ -282,7 +283,7 @@ class ProductsController extends Controller
             $title = $request->title;
             if($title)
             {
-                 $productsRecord = Products::join('tbl_categorys','tbl_products.cat_id','=','tbl_categorys.cat_id')->leftjoin('tbl_sub_categorys','tbl_products.pod_sub_cat_id','=','tbl_sub_categorys.sub_id')->where('pod_pro_name','like','%'.$title.'%')->where('pod_status',0)->get();
+                 $productsRecord = Products::join('tbl_categorys','tbl_products.pod_cat_id','=','tbl_categorys.cat_id')->leftjoin('tbl_sub_categorys','tbl_products.pod_sub_cat_id','=','tbl_sub_categorys.sub_id')->where('pod_pro_name','like','%'.$title.'%')->where('pod_status',0)->get();
 
                 if(!$productsRecord->isEmpty())
                 { 
@@ -319,8 +320,6 @@ class ProductsController extends Controller
                   $msg = "Product detail isn't available.";
                     return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => array()],JSON_UNESCAPED_SLASHES);
                 }
-           
-            
         }catch (\Exception $e) {    
             Exceptions::exception($e);
         }
@@ -438,6 +437,7 @@ class ProductsController extends Controller
             'price' => 'required',
             'quantity' => 'required',
             'choose_type'=> 'required',
+            'picture' => 'required'
             ];
         $validator = Validator::make($request->all(), $rules);
 
@@ -468,7 +468,16 @@ class ProductsController extends Controller
                     $num     = $num % 50000 + 1;
                     $num     = str_pad($num, 5, 0, STR_PAD_LEFT);
                     $uniId =  $letters[$letter] . $num;
+                }
 
+                if($request->file('picture'))
+                {
+                    $fileLink = str_random(40);
+                    $images = $request->file('picture');
+                    $imagesname = str_replace(' ', '-',$fileLink.'products.'. $images->getClientOriginalExtension());
+                    $images->move(public_path('assets/img/products/'),$imagesname);
+                }else{
+                    $imagesname = 'default-picture.jpg';
                 }
 
                 $uId = substr($uniId,1);
@@ -492,7 +501,7 @@ class ProductsController extends Controller
                 $insertData['pod_offer_price'] = $request->offer_price ? $request->offer_price:0.0;
                 $insertData['pod_quantity'] = $request->quantity ? $request->quantity:1;
                 $insertData['pod_weight'] = $request->weight ? $request->weight:'';
-                $insertData['pod_picture'] = 'default-picture.jpg';
+                $insertData['pod_picture'] = $imagesname;
                 $insertData['pod_deal_of_day'] = $request->is_deal_day ? $request->is_deal_day:0; //    0 = No , 1 = Yes
                 $insertData['pod_choose_type'] = $request->choose_type ? $request->choose_type:1; //    1 = New , 2 = Ads 3 = Old
                 $insertData['pod_status'] = 1;
@@ -541,6 +550,14 @@ class ProductsController extends Controller
             if(User::where('id',$request->seller_id)->where('use_status',0)->exists())
             {
 
+            if($request->file('picture'))
+            {
+                $fileLink = str_random(40);
+                $images = $request->file('picture');
+                $imagesname = str_replace(' ', '-',$fileLink.'products.'. $images->getClientOriginalExtension());
+                $images->move(public_path('assets/img/products/'),$imagesname);
+            }
+
             $userDetails = User::where('id',$request->seller_id)->first();
 
             $updateData['pod_pro_name'] = $request->product_name;
@@ -554,6 +571,11 @@ class ProductsController extends Controller
             $updateData['pod_weight'] = $request->weight;
             $updateData['pod_deal_of_day'] = $request->is_deal_day ? $request->is_deal_day:0; //    0 = No , 1 = Yes
             $updateData['pod_choose_type'] = $request->choose_type ? $request->choose_type:1; //    1 = New , 2 = Ads 3 = Old
+            if($request->file('picture'))
+            {
+                $updateData['pod_picture'] = $imagesname;
+            }
+
             $updateData['pod_status'] = 1;
             $updateData['pod_seller_id'] = $request->seller_id;
             $updateData['pod_village_id'] = $userDetails->use_village_id;
@@ -845,6 +867,8 @@ class ProductsController extends Controller
                                 $wishlist = 0;
                                 $wishlistId = '';
                             }
+
+                            $setting = SystemSetting::select('sys_razorpay_key_id')->where('sys_unique_id',"sys05hLCXss19JB2")->first();
                     
                             $productUrl = url("public/assets/img/products/".$value->pod_picture);
                             $productDetails[] = array(
@@ -860,6 +884,7 @@ class ProductsController extends Controller
                                 "total" => ''.$value->crt_total.'',
                                 "wishlist" => ''.$wishlist.'',
                                 "wish_id" => ''.$wishlistId.'',
+                                "razorpay_key_id" => ''.$setting->sys_razorpay_key_id.'',
                                 'picture_url' => $productUrl);
                         }
                         array_walk_recursive($productDetails, function (&$item, $key) {

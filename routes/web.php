@@ -429,3 +429,6 @@ Route::post('/update-assign-order', 'Admin\ProductOrderController@updateAssignOr
 // -------------- BEGIN FEEDBACK MODULE -------------------
 Route::get('/feedback', 'Admin\FeedbackController@index');  // Grid List
 Route::get('/delete-feedback/{id}', 'Admin\FeedbackController@destroy'); // To delete reecord
+
+Route::get('/setting', 'Admin\SettingController@index');  // Grid List
+Route::post('/update-setting', 'Admin\SettingController@update');  // Update Setting

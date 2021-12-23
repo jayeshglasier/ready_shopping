@@ -30,106 +30,144 @@ class AuthController extends Controller
         {
             $errors = $validator->errors();
             foreach ($errors->all() as $message) {                
-                return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                return json_encode(['status' => false, 'error' => '401', 'message' => $message,'data' => array()],JSON_UNESCAPED_SLASHES);
             }
         }else
         {
             if(is_numeric($request->mobile_number))
             {
-                if(User::where('use_phone_no',$request->mobile_number)->exists())
+                if($request->user_type == 3) // Customer
                 {
-                    $updateData['use_fcm_token'] = $request->device_token;
-                    $updateData['use_role'] = $request->user_type;
-                    $userdetailsUpdate = User::where('use_phone_no',$request->mobile_number)->update($updateData);
-
-                    $userdetails = User::where('use_phone_no',$request->mobile_number)->first();
-
-                    if($userdetails->use_image)
+                    if(User::where('use_phone_no',$request->mobile_number)->exists())
                     {
-                        $useProfile = url('public/assets/img/users/').'/'.$userdetails->use_image;
+                        $updateData['use_fcm_token'] = $request->device_token ? $request->device_token:'';
+                        $updateData['use_role'] = $request->user_type;
+                        $userdetailsUpdate = User::where('use_phone_no',$request->mobile_number)->update($updateData);
+
+                        $userdetails = User::where('use_phone_no',$request->mobile_number)->first();
+
+                        if($userdetails->use_image)
+                        {
+                            $useProfile = url('public/assets/img/users/').'/'.$userdetails->use_image;
+                        }else{
+                            $useProfile = url('public/assets/img/default-profile-img.jpg');
+                        }
+                        $userRecord = array(
+                        "user_id" => ''.$userdetails->id.'',
+                        'full_name' => ''.$userdetails->use_full_name.'',
+                        'mobile_number' => ''.$userdetails->use_phone_no.'',
+                        'village' => ''.$userdetails->use_village_name.'',
+                        'token' => ''.$userdetails->use_token.'',
+                        'profile_url' => $useProfile,
+                        'user_type' => ''.$userdetails->use_role.'');
+                        $msg = "User details";
+                        return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => [$userRecord]],JSON_UNESCAPED_SLASHES);
                     }else{
-                        $useProfile = url('public/assets/img/default-profile-img.jpg');
+
+                        $otpCode = rand(100000, 999999);
+                        $lastId = User::select('id','use_user_order')->where('use_role',3)->orderBy('use_user_order','DESC')->limit(1)->first();
+                
+                        if($lastId)
+                        {
+                            $id = $lastId->use_user_order;
+                            $userOrder = $lastId->use_user_order + 1;
+                        }else{
+                            $id = "00000";
+                            $userOrder = 1;
+                        }
+
+                        if ($id<=129999)
+                        {
+                            $num     = $id;
+                            $letters = range('A', 'Z');
+                            $letter  = (int) $num / 50000;
+                            $num     = $num % 50000 + 1;
+                            $num     = str_pad($num, 5, 0, STR_PAD_LEFT);
+                            $uniId =  $letters[$letter] . $num;
+
+                        }
+
+                        $uId = substr($uniId,1);
+                        $uniqueId = 'RSUSE'.$uId;
+
+                        $insertData = new User;
+                        $insertData->use_unique_id = $uniqueId;
+                        $insertData->use_full_name = '';
+                        $insertData->email = '';
+                        $insertData->use_phone_no = $request->mobile_number;
+                        $insertData->email_verified_at = date('Y-m-d H:i:s');
+                        $insertData->password = bcrypt('123456');
+                        $insertData->use_token = str_random(90);
+                        $insertData->remember_token = str_random(90);
+                        $insertData->use_fcm_token = $request->device_token ? $request->device_token:'';
+                        $insertData->use_role = $request->user_type; // Users
+                        $insertData->use_image = '';
+                        $insertData->use_status = 0;
+                        $insertData->use_shop_name = '';
+                        $insertData->use_shop_address = '';
+                        $insertData->use_village_id = 0;
+                        $insertData->use_village_name = '';
+                        $insertData->use_taluka = '';
+                        $insertData->use_pincode = 0;
+                        $insertData->use_alt_mobile_number = '';
+                        $insertData->use_seller_order = 0;
+                        $insertData->use_user_order = $userOrder;
+                        $insertData->use_otp_code = $otpCode;
+                        $insertData->created_at = date('Y-m-d H:i:s');
+                        $insertData->updated_at = date('Y-m-d H:i:s');
+                        $insertData->save();
+                       
+                        $userdetails = User::limit(1)->orderBy('id','DESC')->first();
+                        $userRecord = array(
+                        "user_id" => ''.$userdetails->id.'',
+                        'full_name' => ''.$userdetails->use_full_name.'',
+                        'mobile_number' => ''.$userdetails->use_phone_no.'',
+                        'village' => ''.$userdetails->use_village_name.'',
+                        'token' => ''.$userdetails->use_token.'',
+                        'profile_url' => url('public/assets/img/default-profile-img.jpg'),
+                        'user_type' => ''.$userdetails->use_role.'');
+                        $msg = "User details";
+                        return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => [$userRecord]],JSON_UNESCAPED_SLASHES);
                     }
-                    $userRecord = array(
-                    "user_id" => ''.$userdetails->id.'',
-                    'full_name' => ''.$userdetails->use_full_name.'',
-                    'mobile_number' => ''.$userdetails->use_phone_no.'',
-                    'village' => ''.$userdetails->use_village_name.'',
-                    'token' => ''.$userdetails->use_token.'',
-                    'profile_url' => $useProfile,
-                    'user_type' => ''.$userdetails->use_role.'');
-                    $msg = "User details";
-                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => $userRecord],JSON_UNESCAPED_SLASHES);
+                }
+                else if($request->user_type == 2) // Seller
+                {
+                    if(User::where('use_phone_no',$request->mobile_number)->exists())
+                    {
+                        $updateData['use_fcm_token'] = $request->device_token ? $request->device_token:'';
+                        $updateData['use_role'] = $request->user_type;
+                        $userdetailsUpdate = User::where('use_phone_no',$request->mobile_number)->update($updateData);
+
+                        $userdetails = User::where('use_phone_no',$request->mobile_number)->first();
+
+                        if($userdetails->use_image)
+                        {
+                            $useProfile = url('public/assets/img/users/').'/'.$userdetails->use_image;
+                        }else{
+                            $useProfile = url('public/assets/img/default-profile-img.jpg');
+                        }
+                        $userRecord = array(
+                        "user_id" => ''.$userdetails->id.'',
+                        'full_name' => ''.$userdetails->use_full_name.'',
+                        'mobile_number' => ''.$userdetails->use_phone_no.'',
+                        'village' => ''.$userdetails->use_village_name.'',
+                        'token' => ''.$userdetails->use_token.'',
+                        'profile_url' => $useProfile,
+                        'user_type' => ''.$userdetails->use_role.'');
+                        $msg = "User details";
+                        return json_encode(['status' => true, 'error' => '200', 'account' => '0','message' => $msg,'data' => [$userRecord]],JSON_UNESCAPED_SLASHES);
+                    }else{
+                                    
+                        $msg = "Your account isn't active.";
+                        return json_encode(['status' => false, 'error' => '401', 'account' => '1', 'message' => $msg,'data' => array()],JSON_UNESCAPED_SLASHES);
+                    }
                 }else{
-
-                    $otpCode = rand(100000, 999999);
-                    $lastId = User::select('id','use_user_order')->where('use_role',3)->orderBy('use_user_order','DESC')->limit(1)->first();
-            
-                    if($lastId)
-                    {
-                        $id = $lastId->use_user_order;
-                        $userOrder = $lastId->use_user_order + 1;
-                    }else{
-                        $id = "00000";
-                        $userOrder = 1;
-                    }
-
-                    if ($id<=129999)
-                    {
-                        $num     = $id;
-                        $letters = range('A', 'Z');
-                        $letter  = (int) $num / 50000;
-                        $num     = $num % 50000 + 1;
-                        $num     = str_pad($num, 5, 0, STR_PAD_LEFT);
-                        $uniId =  $letters[$letter] . $num;
-
-                    }
-
-                    $uId = substr($uniId,1);
-                    $uniqueId = 'RSUSE'.$uId;
-
-                    $insertData = new User;
-                    $insertData->use_unique_id = $uniqueId;
-                    $insertData->use_full_name = '';
-                    $insertData->email = '';
-                    $insertData->use_phone_no = $request->mobile_number;
-                    $insertData->email_verified_at = date('Y-m-d H:i:s');
-                    $insertData->password = bcrypt('123456');
-                    $insertData->use_token = str_random(90);
-                    $insertData->remember_token = str_random(90);
-                    $insertData->use_fcm_token = $request->device_token ? $request->device_token:'';
-                    $insertData->use_role = $request->user_type; // Users
-                    $insertData->use_image = '';
-                    $insertData->use_status = 0;
-                    $insertData->use_shop_name = '';
-                    $insertData->use_shop_address = '';
-                    $insertData->use_village_id = 0;
-                    $insertData->use_village_name = '';
-                    $insertData->use_taluka = '';
-                    $insertData->use_pincode = 0;
-                    $insertData->use_alt_mobile_number = '';
-                    $insertData->use_seller_order = 0;
-                    $insertData->use_user_order = $userOrder;
-                    $insertData->use_otp_code = $otpCode;
-                    $insertData->created_at = date('Y-m-d H:i:s');
-                    $insertData->updated_at = date('Y-m-d H:i:s');
-                    $insertData->save();
-                   
-                    $userdetails = User::limit(1)->orderBy('id','DESC')->first();
-                    $userRecord = array(
-                    "user_id" => ''.$userdetails->id.'',
-                    'full_name' => ''.$userdetails->use_full_name.'',
-                    'mobile_number' => ''.$userdetails->use_phone_no.'',
-                    'village' => ''.$userdetails->use_village_name.'',
-                    'token' => ''.$userdetails->use_token.'',
-                    'profile_url' => url('public/assets/img/default-profile-img.jpg'),
-                    'user_type' => ''.$userdetails->use_role.'');
-                    $msg = "User details";
-                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => $userRecord],JSON_UNESCAPED_SLASHES);
+                    $msg = "Your account isn't active.";
+                        return json_encode(['status' => false, 'error' => '401', 'account' => '1', 'message' => $msg,'data' => array()],JSON_UNESCAPED_SLASHES);
                 }
             }else{
                 $message = "only numberic value enter";
-                return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                return json_encode(['status' => false, 'error' => '401', 'message' => $message,'data' => array()],JSON_UNESCAPED_SLASHES);
             }
         }
     }
@@ -166,11 +204,11 @@ class AuthController extends Controller
                     return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => array($userRecord)],JSON_UNESCAPED_SLASHES);
                 }else{
                     $msg = "Opt isn't valid!";
-                    return json_encode(['status' => true, 'error' => '401', 'message' => $msg],JSON_UNESCAPED_SLASHES);
+                    return json_encode(['status' => true, 'error' => '401', 'message' => $msg,'data' => array()],JSON_UNESCAPED_SLASHES);
                 }
             }else{
                 $message = "Only numberic value valid!";
-                return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                return json_encode(['status' => false, 'error' => '401', 'message' => $message,'data' => array()],JSON_UNESCAPED_SLASHES);
             }
         }
     }
@@ -191,7 +229,7 @@ class AuthController extends Controller
         {
             $errors = $validator->errors();
             foreach ($errors->all() as $message) {                
-                return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                return json_encode(['status' => false, 'error' => '401', 'message' => $message,'data' => array()],JSON_UNESCAPED_SLASHES);
             }
         }else
         {
@@ -200,7 +238,7 @@ class AuthController extends Controller
                 if(User::where('use_phone_no',$request->mobile_number)->where('use_role',2)->exists())
                 {
                     $msg = "Mobile number already exists!";
-                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg],JSON_UNESCAPED_SLASHES);
+                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => array()],JSON_UNESCAPED_SLASHES);
                 }else{
 
                     // *********************** Begin Default Store Dispaly Id ***********************
@@ -267,11 +305,11 @@ class AuthController extends Controller
 
                
                     $msg = "Registration successfully.";
-                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => $userDetails],JSON_UNESCAPED_SLASHES);
+                    return json_encode(['status' => true, 'error' => '200', 'message' => $msg,'data' => [$userDetails]],JSON_UNESCAPED_SLASHES);
                 }
             }else{
                 $message = "only numberic value enter";
-                return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                return json_encode(['status' => false, 'error' => '401', 'message' => $message,'data' => array()],JSON_UNESCAPED_SLASHES);
             }
         }
     }

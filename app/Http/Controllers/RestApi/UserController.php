@@ -348,5 +348,46 @@ class UserController extends Controller
         }
     }
 
+    public function activeUser(Request $request) 
+    {
+        try
+        {
+            $rules = [
+                'mobile_number' => 'required',
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if($validator->fails())
+            {
+                $errors = $validator->errors();
+                foreach ($errors->all() as $message) {                
+                    return json_encode(['status' => false, 'error' => '401', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                }
+            }else
+            {
+                $mobileNumber = $request->mobile_number;
+
+                if($mobileNumber)
+                {
+                    if(User::where('use_phone_no',$mobileNumber)->where('use_status',0)->exists())
+                    {
+                        $message = "User is active";
+                        return json_encode(['status' => true, 'error' => '200', 'account' => '0', 'message' => $message],JSON_UNESCAPED_SLASHES);
+                    }else{
+                        $msg = "Your account isn't active.";
+                        return json_encode(['status' => false, 'error' => '401', 'account' => '1', 'message' => $msg],JSON_UNESCAPED_SLASHES);
+                    }
+                }else{
+                    $msg = "Token isn't found!";
+                    return json_encode(['status' => false, 'error' => '401', 'message' => $msg],JSON_UNESCAPED_SLASHES);
+                }
+            }
+
+        }catch (\Exception $e) {    
+            Exceptions::exception($e);
+        }
+    }
+
    
 }

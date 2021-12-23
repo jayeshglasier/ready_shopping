@@ -21,6 +21,8 @@ Route::post('seller-update-profile','RestApi\AuthController@sellersUpdateProfile
 Route::post('users-detail', 'RestApi\UserController@index');
 Route::post('edit-profile', 'RestApi\UserController@editProfile');
 Route::post('update-profile-image', 'RestApi\UserController@uploadProfile');
+Route::post('user-is-active','RestApi\UserController@activeUser');
+
 
 // --------------- HOME PAGE MODULE START HERE -----------------------
 Route::get('home/banners-list', 'RestApi\HomeController@bannersList');

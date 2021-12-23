@@ -64,7 +64,7 @@
         <div class="dropdown-list-content dropdown-list-icons">
           <div class="dropdown-title">Hello {{ Auth::user()->use_full_name}}</div>
           <a href="{{ url('user-profile') }}" class="dropdown-item has-icon"> <i class="far fa-user"></i> Profile</a>
-          <a href="#" class="dropdown-item has-icon"> <i class="fas fa-cog"></i> Settings</a>
+          <a href="{{ url('setting') }}" class="dropdown-item has-icon"> <i class="fas fa-cog"></i> Settings</a>
           <a href="#" class="dropdown-item has-icon"> <i class="fas fa-cog"></i> Policy</a>
           <a href="{{ route('logout') }}" onclick="event.preventDefault();document.getElementById('logout-form').submit();" class="dropdown-item has-icon text-danger"> <i class="fas fa-sign-out-alt"></i>
             Logout</a>
